@@ -1,0 +1,19 @@
+{
+  "name": "soci-cdn",
+  "version": "1.0.0",
+  "description": "allows uploading of files",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jjcm/soci-cdn.git"
+  },
+  "author": "jjcm",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jjcm/soci-cdn/issues"
+  },
+  "homepage": "https://github.com/jjcm/soci-cdn#readme"
+}
