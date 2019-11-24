@@ -1,5 +1,7 @@
 const fileupload = require('express-fileupload')
+const fetch = require('node-fetch')
 const express = require('express')
+const webp = require('webp-converter')
 const app = express()
 const PORT = 8081
 
@@ -16,6 +18,7 @@ app.get('/', (req, res) => {
           action='/upload' 
           method='post' 
           encType="multipart/form-data">
+            <input name="url" value="asdf"/>
             <input type="file" name="myFile" />
             <input type='submit' value='Upload!' />
         </form>     
@@ -24,25 +27,42 @@ app.get('/', (req, res) => {
   `)
 })
 
-app.post('/upload', (req, res) => {
+app.post('/upload', async (req, res) => {
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.status(400).send('No files were uploaded.')
   }
-  console.log(req.files)
-  const file = req.files.myFile
-  const path = __dirname + '/files/' + file.name
 
-  file.mv(path, err => {
+  let options = {}
+  options.headers = {
+    Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InF3ZXIyMzE0MjM0QGFzZGZjLmNvbSIsImV4cGlyZXNBdCI6MTU3NDg0MTUzMH0.55hnoyKUj6TMzgA6vSGi7InRSL0mDHDBXtGSGHyvi4E"
+  }
+
+  const available = await fetch('https://api.non.io/posts/url-is-available/' + req.body.url, options)
+  if(!available) return res.status(400).send('URL is not available')
+
+
+  const file = req.files.myFile
+  const extension = file.name.match(/\.[0-9a-z]+$/)
+  if(!extension) return res.status(400).send('No file extension found')
+
+  const tmpPath = `${__dirname}/tmp/${req.body.url + extension[0]}`
+  file.mv(tmpPath, err => {
     if(err) {
-      console.error(err)
       res.writeHead(500, {'Content-Type': 'application/json'})
       res.end(JSON.stringify({status: 'error', message: err}))
       return
     }
   })
 
-  res.writeHead(200, {'Content-Type': 'application/json'})
-  res.end(JSON.stringify({status :'success', path: '/files/' + file.name}))
+  const path = `${__dirname}/files/${req.body.url}.webp`
+  webp[extension == '.gif' ? 'gwebp' : 'cwebp'](tmpPath, path, "-q 80", status => {
+    if(status == 100) {
+      res.writeHead(200, {'Content-Type': 'application/json'})
+      res.end(JSON.stringify({status :'success', path: `/files/${req.body.url}.webp`}))
+    }
+    else return res.status(500).send('Conversion error')
+  })
+
 })
 
 app.listen(PORT, ()=>console.log('listening on ' + PORT))
