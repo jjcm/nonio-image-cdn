@@ -1,13 +1,13 @@
 const fileupload = require('express-fileupload')
 const fetch = require('node-fetch')
+const cors = require('cors')
 const express = require('express')
 const webp = require('webp-converter')
 const app = express()
 const PORT = 8081
 
-app.use(
-  fileupload()
-)
+app.use(fileupload())
+app.use(cors())
 
 app.get('/', (req, res) => {
   res.send(`
@@ -41,7 +41,7 @@ app.post('/upload', async (req, res) => {
   if(!available) return res.status(400).send('URL is not available')
 
 
-  const file = req.files.myFile
+  const file = req.files.file
   const extension = file.name.match(/\.[0-9a-z]+$/)
   if(!extension) return res.status(400).send('No file extension found')
 
@@ -58,7 +58,7 @@ app.post('/upload', async (req, res) => {
   webp[extension == '.gif' ? 'gwebp' : 'cwebp'](tmpPath, path, "-q 80", status => {
     if(status == 100) {
       res.writeHead(200, {'Content-Type': 'application/json'})
-      res.end(JSON.stringify({status :'success', path: `/files/${req.body.url}.webp`}))
+      res.end(JSON.stringify({status :'success', path: `${req.body.url}.webp`}))
     }
     else return res.status(500).send('Conversion error')
   })
