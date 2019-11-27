@@ -32,20 +32,24 @@ app.post('/upload', async (req, res) => {
     return res.status(400).send('No files were uploaded.')
   }
 
-  let options = {}
-  options.headers = {
-    Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InF3ZXIyMzE0MjM0QGFzZGZjLmNvbSIsImV4cGlyZXNBdCI6MTU3NDg0MTUzMH0.55hnoyKUj6TMzgA6vSGi7InRSL0mDHDBXtGSGHyvi4E"
+  let filename = ''
+  if(req.body.url == '') {
+    filename = 'pending/xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8)
+      return v.toString(16)
+    })
   }
-
-  const available = await fetch('https://api.non.io/posts/url-is-available/' + req.body.url, options)
-  if(!available) return res.status(400).send('URL is not available')
-
+  else {
+    const available = await fetch('https://api.non.io/posts/url-is-available/' + req.body.url)
+    if(!await available.json()) return res.status(400).send('URL is not available')
+    filename = req.body.url
+  }
 
   const file = req.files.file
   const extension = file.name.match(/\.[0-9a-z]+$/)
   if(!extension) return res.status(400).send('No file extension found')
 
-  const tmpPath = `${__dirname}/tmp/${req.body.url + extension[0]}`
+  const tmpPath = `${__dirname}/tmp/${filename + extension[0]}`
   file.mv(tmpPath, err => {
     if(err) {
       res.writeHead(500, {'Content-Type': 'application/json'})
@@ -54,14 +58,29 @@ app.post('/upload', async (req, res) => {
     }
   })
 
-  const path = `${__dirname}/files/${req.body.url}.webp`
+  const path = `${__dirname}/files/${filename}.webp`
   webp[extension == '.gif' ? 'gwebp' : 'cwebp'](tmpPath, path, "-q 80", status => {
     if(status == 100) {
       res.writeHead(200, {'Content-Type': 'application/json'})
-      res.end(JSON.stringify({status :'success', path: `${req.body.url}.webp`}))
+      res.end(JSON.stringify({status :'success', path: `${filename}.webp`}))
     }
     else return res.status(500).send('Conversion error')
   })
+
+})
+
+app.post('/move', async (req, res) => {
+  let tmpUrl = `${__dirname}/files/${req.body.tmpUrl}.webp`
+  let newUrl = `${__dirname}/files/${req.body.url}.webp`
+
+  if(fs.existsSync(tmpUrl)){
+    fs.rename(tmpUrl, newUrl, err => {
+      if(err) return res.status(500).send('Rename error')
+      return res.send({status :'success', path: `${req.body.url}.webp`})
+    })
+  }
+  else return res.status(400).send('Previously uploaded image not found')
+
 
 })
 
