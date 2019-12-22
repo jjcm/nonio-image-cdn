@@ -10,6 +10,7 @@ app.use(fileupload())
 app.use(cors())
 
 app.get('/', (req, res) => {
+  console.log('root requested')
   res.send(`
     <html>
       <body>
@@ -19,7 +20,7 @@ app.get('/', (req, res) => {
           method='post' 
           encType="multipart/form-data">
             <input name="url" value="asdf"/>
-            <input type="file" name="myFile" />
+            <input type="file" name="file" />
             <input type='submit' value='Upload!' />
         </form>     
       </body>
@@ -28,6 +29,7 @@ app.get('/', (req, res) => {
 })
 
 app.post('/upload', async (req, res) => {
+  console.log(`Upload: ${req.body.url}`)
   if (!req.files || Object.keys(req.files).length === 0) {
     return res.status(400).send('No files were uploaded.')
   }
@@ -45,7 +47,9 @@ app.post('/upload', async (req, res) => {
     filename = req.body.url
   }
 
+  console.log(req.files)
   const file = req.files.file
+  console.log(file)
   const extension = file.name.match(/\.[0-9a-z]+$/)
   if(!extension) return res.status(400).send('No file extension found')
 
