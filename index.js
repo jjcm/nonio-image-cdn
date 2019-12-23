@@ -63,14 +63,18 @@ app.post('/upload', async (req, res) => {
   })
 
   const path = `${__dirname}/files/${filename}.webp`
+  const thumbPath = `${__dirname}/thumbnails/${filename}.webp`
+  //convert the image
   webp[extension == '.gif' ? 'gwebp' : 'cwebp'](tmpPath, path, "-q 80", status => {
     if(status == 100) {
-      res.writeHead(200, {'Content-Type': 'application/json'})
-      res.end(JSON.stringify({status :'success', path: `${filename}.webp`}))
+      //if the conversion is successful, generate a thumbnail
+      webp[extension == '.gif' ? 'gwebp' : 'cwebp'](tmpPath, thumbPath, "-resize 100 0 -q 80", status => {
+        res.writeHead(200, {'Content-Type': 'application/json'})
+        res.end(JSON.stringify({status :'success', path: `${filename}.webp`}))
+      })
     }
     else return res.status(500).send('Conversion error')
   })
-
 })
 
 app.post('/move', async (req, res) => {
