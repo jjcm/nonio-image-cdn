@@ -68,7 +68,7 @@ app.post('/upload', async (req, res) => {
   webp[extension == '.gif' ? 'gwebp' : 'cwebp'](tmpPath, path, "-q 80", status => {
     if(status == 100) {
       //if the conversion is successful, generate a thumbnail
-      webp[extension == '.gif' ? 'gwebp' : 'cwebp'](tmpPath, thumbPath, "-resize 100 0 -q 80", status => {
+      webp[extension == '.gif' ? 'gwebp' : 'cwebp'](tmpPath, thumbPath, "-resize 192 0 -q 50", status => {
         res.writeHead(200, {'Content-Type': 'application/json'})
         res.end(JSON.stringify({status :'success', path: `${filename}.webp`}))
       })
