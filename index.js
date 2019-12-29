@@ -50,7 +50,7 @@ app.post('/upload', async (req, res) => {
   console.log(req.files)
   const file = req.files.file
   console.log(file)
-  const extension = file.name.match(/\.[0-9a-zA-Z]+$/)
+  let extension = file.name.match(/\.[0-9a-zA-Z]+$/)
   if(!extension) return res.status(400).send('No file extension found')
   extension = extension[0].toLowerCase()
 
