@@ -54,7 +54,7 @@ app.post('/upload', async (req, res) => {
   if(!extension) return res.status(400).send('No file extension found')
   extension = extension[0].toLowerCase()
 
-  const tmpPath = `${__dirname}/tmp/${filename + extension[0]}`
+  const tmpPath = `${__dirname}/tmp/${filename + extension}`
   file.mv(tmpPath, err => {
     if(err) {
       res.writeHead(500, {'Content-Type': 'application/json'})
