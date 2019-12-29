@@ -3,6 +3,7 @@ const fetch = require('node-fetch')
 const cors = require('cors')
 const express = require('express')
 const webp = require('webp-converter')
+const fs = require('fs')
 const app = express()
 const PORT = 8081
 
