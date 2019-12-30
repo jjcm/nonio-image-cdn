@@ -80,13 +80,14 @@ app.post('/upload', async (req, res) => {
 })
 
 app.post('/move', async (req, res) => {
-  let tmpUrl = `${__dirname}/files/${req.body.tmpUrl}.webp`
-  let newUrl = `${__dirname}/files/${req.body.url}.webp`
+  let oldUrl = `${__dirname}/files/${req.body.oldUrl}`
+  let newUrl = `${__dirname}/files/${req.body.url}`
+  console.log(`move from ${oldUrl} to ${newUrl} requested`)
 
-  if(fs.existsSync(tmpUrl)){
-    fs.rename(tmpUrl, newUrl, err => {
+  if(fs.existsSync(oldUrl)){
+    fs.rename(oldUrl, newUrl, err => {
       if(err) return res.status(500).send('Rename error')
-      return res.send({status :'success', path: `${req.body.url}.webp`})
+      return res.send({status :'success', path: `${req.body.url}`})
     })
   }
   else return res.status(400).send('Previously uploaded image not found')
