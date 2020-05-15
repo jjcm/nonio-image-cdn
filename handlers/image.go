@@ -16,9 +16,9 @@ type imageUploadResponse struct {
 }
 
 // HandleImage encodes the image into a webp and returns the path to it
-func HandleImage(w http.ResponseWriter, r *http.Request, file multipart.File, name string) {
+func HandleImage(w http.ResponseWriter, r *http.Request, file multipart.File, url string) {
 	// Create a temp file
-	tempFile, err := ioutil.TempFile("temp-images", "image-*")
+	tempFile, err := ioutil.TempFile("files/temp-images", "image-*")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -32,7 +32,7 @@ func HandleImage(w http.ResponseWriter, r *http.Request, file multipart.File, na
 	tempFile.Write(fileBytes)
 
 	// since this is an image we'll use magick to encode it
-	cmd := exec.Command("magick", tempFile.Name(), fmt.Sprintf("files/images/%v.webp", name))
+	cmd := exec.Command("magick", tempFile.Name(), fmt.Sprintf("files/images/%v.webp", url))
 	workingDir, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
@@ -46,6 +46,6 @@ func HandleImage(w http.ResponseWriter, r *http.Request, file multipart.File, na
 	}
 
 	// if everything looks good, send back a response
-	res := imageUploadResponse{"success", fmt.Sprintf("files/images/%v.webp", name)}
+	res := imageUploadResponse{"success", fmt.Sprintf("files/images/%v.webp", url)}
 	SendResponse(w, res, 200)
 }
