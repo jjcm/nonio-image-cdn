@@ -45,6 +45,20 @@ func HandleImage(w http.ResponseWriter, r *http.Request, file multipart.File, ur
 		panic(output.String())
 	}
 
+	// oh hey we need a thumbnail too. We could probs merge these two calls into one and it might be more performant
+	thumbCmd := exec.Command("magick", tempFile.Name(), "-resize", "192x144^", fmt.Sprintf("files/thumbnails/%v.webp", url))
+	thumbWorkingDir, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+	cmd.Dir = thumbWorkingDir
+	var thumbOutput bytes.Buffer
+	cmd.Stderr = &thumbOutput
+	err = thumbCmd.Run()
+	if err != nil {
+		panic(output.String())
+	}
+
 	// if everything looks good, send back a response
 	res := imageUploadResponse{"success", fmt.Sprintf("files/images/%v.webp", url)}
 	SendResponse(w, res, 200)
