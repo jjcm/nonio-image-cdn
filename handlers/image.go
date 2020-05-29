@@ -32,7 +32,7 @@ func HandleImage(w http.ResponseWriter, r *http.Request, file multipart.File, ur
 	tempFile.Write(fileBytes)
 
 	// since this is an image we'll use magick to encode it
-	cmd := exec.Command("magick", tempFile.Name(), fmt.Sprintf("files/images/%v.webp", url))
+	cmd := exec.Command("convert", tempFile.Name(), "(", "+clone", "-resize", "192x144^", "-write", fmt.Sprintf("files/thumbnails/%v.webp", url), "+delete", ")", fmt.Sprintf("files/images/%v.webp", url))
 	workingDir, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
@@ -41,20 +41,6 @@ func HandleImage(w http.ResponseWriter, r *http.Request, file multipart.File, ur
 	var output bytes.Buffer
 	cmd.Stderr = &output
 	err = cmd.Run()
-	if err != nil {
-		panic(output.String())
-	}
-
-	// oh hey we need a thumbnail too. We could probs merge these two calls into one and it might be more performant
-	thumbCmd := exec.Command("magick", tempFile.Name(), "-resize", "192x144^", fmt.Sprintf("files/thumbnails/%v.webp", url))
-	thumbWorkingDir, err := os.Getwd()
-	if err != nil {
-		fmt.Println(err)
-	}
-	cmd.Dir = thumbWorkingDir
-	var thumbOutput bytes.Buffer
-	cmd.Stderr = &thumbOutput
-	err = thumbCmd.Run()
 	if err != nil {
 		panic(output.String())
 	}
