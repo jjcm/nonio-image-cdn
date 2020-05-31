@@ -1,28 +1,17 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"soci-cdn/handlers"
+	"soci-cdn/util"
 )
-
-type uploadResponse struct {
-	Status string
-	Name   string
-}
-
-type authorizationResponse struct {
-	Error string
-	Email string
-	ID    int
-}
 
 func uploadFile(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
-		handlers.SendResponse(w, "", 200)
+		util.SendResponse(w, "", 200)
 		return
 	}
 	// Parse our multipart form, set a 1GB max upload size
@@ -31,27 +20,22 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 	// Get the user's email if we're authorized
 	bearerToken := r.Header.Get("Authorization")
 	fmt.Println(bearerToken)
-	user, err := getUserEmail(bearerToken)
+	user, err := util.GetUserEmail(bearerToken)
 	fmt.Println(user)
 	if err != nil {
-		fmt.Println("User is not authorized.")
-		fmt.Println(err)
-		res := uploadResponse{"User is not authorized", bearerToken}
-		handlers.SendResponse(w, res, 400)
+		util.SendError(w, fmt.Sprintf("User is not authorized. Token: %v", bearerToken), 400)
 		return
 	}
 
 	// Parse our url, and check if the url is available
 	url := r.FormValue("url")
-	urlIsAvailable, err := checkIfURLIsAvailable(url)
+	urlIsAvailable, err := util.CheckIfURLIsAvailable(url)
 	if err != nil {
-		res := uploadResponse{"Error checking requested url", url}
-		handlers.SendResponse(w, res, 400)
+		util.SendError(w, "Error checking requested url.", 500)
 		return
 	}
 	if urlIsAvailable == false {
-		res := uploadResponse{"Url is taken", url}
-		handlers.SendResponse(w, res, 400)
+		util.SendError(w, "Url is taken.", 400)
 		return
 	}
 
@@ -79,65 +63,60 @@ func uploadFile(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// hits our api server and checks to see if the url is available to upload to
-func checkIfURLIsAvailable(url string) (bool, error) {
-	urlCheckRes, err := http.Get(fmt.Sprintf("https://api.non.io/posts/url-is-available/%v", url))
+// Move takes the temp file and renames it to match the url
+func moveFile(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "OPTIONS" {
+		util.SendResponse(w, "", 200)
+		return
+	}
+
+	r.ParseMultipartForm(1 << 30)
+
+	// Get the user's email if we're authorized
+	bearerToken := r.Header.Get("Authorization")
+	fmt.Println(bearerToken)
+	user, err := util.GetUserEmail(bearerToken)
+	fmt.Println(user)
 	if err != nil {
-		fmt.Println("Error checking if url is available")
-		fmt.Println(err)
-		return false, err
+		util.SendError(w, "User is not authorized.", 400)
+		return
 	}
-	defer urlCheckRes.Body.Close()
-	body, err := ioutil.ReadAll(urlCheckRes.Body)
+
+	// Parse our url, and check if the url is available
+	url := r.FormValue("url")
+	urlIsAvailable, err := util.CheckIfURLIsAvailable(url)
 	if err != nil {
-		fmt.Println("Error parsing the body of the url check")
+		util.SendError(w, "Error checking requested url.", 500)
 		fmt.Println(err)
-		return false, err
+		return
+	}
+	if urlIsAvailable == false {
+		util.SendError(w, "Url is taken.", 400)
+		return
 	}
 
-	return string(body) == "true", err
-}
+	// Check if the file we're moving exists
+	tempFile := r.FormValue("tempName")
+	if _, err := os.Stat(fmt.Sprintf("files/temp-images/%v.webp", tempFile)); os.IsNotExist(err) {
+		util.SendError(w, "No temp image exists with that name.", 400)
+		fmt.Println(err)
+		return
+	}
 
-func getUserEmail(bearerToken string) (string, error) {
-	// Send a req to the api to get the email from our token, if it's valid
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.non.io/protected", nil)
-	req.Header.Add("Authorization", bearerToken)
-	userAuthRes, err := client.Do(req)
+	// If everything else looks good, lets move the file.
+	err = os.Rename(fmt.Sprintf("files/temp-images/%v.webp", tempFile), fmt.Sprintf("files/images/%v.webp", url))
 	if err != nil {
-		fmt.Println("Error checking if the user is authorized")
-		fmt.Println(err)
-		return "", err
-	}
-	defer userAuthRes.Body.Close()
-
-	// Parse the body of the request once it comes back
-	body, err := ioutil.ReadAll(userAuthRes.Body)
-	if err != nil {
-		fmt.Println("Error parsing the body of the user auth check")
-		fmt.Println(err)
-		return "", err
+		util.SendError(w, "Error renaming file.", 500)
+		return
 	}
 
-	// Create a authResponse struct, fill it with the parsed json values
-	authResponse := authorizationResponse{}
-	err = json.Unmarshal(body, &authResponse)
-	if err != nil {
-		fmt.Println("Error parsing the json of the user auth check")
-		fmt.Println(err)
-		return "", err
-	}
-
-	// Populate our error with the json response's error
-	if authResponse.Error != "" {
-		err = fmt.Errorf(authResponse.Error)
-	}
-
-	return authResponse.Email, err
+	// Send back a response.
+	util.SendResponse(w, url, 200)
 }
 
 func setupRoutes() {
 	http.HandleFunc("/upload", uploadFile)
+	http.HandleFunc("/move", moveFile)
 	http.ListenAndServe(":8081", nil)
 }
 

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"soci-cdn/util"
 )
 
 type imageUploadResponse struct {
@@ -46,6 +47,5 @@ func HandleImage(w http.ResponseWriter, r *http.Request, file multipart.File, ur
 	}
 
 	// if everything looks good, send back a response
-	res := imageUploadResponse{"success", fmt.Sprintf("files/images/%v.webp", url)}
-	SendResponse(w, res, 200)
+	util.SendResponse(w, url, 200)
 }
