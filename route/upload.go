@@ -46,10 +46,9 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse our file and assign it to the proper handlers depending on the type
-	file, handler, err := r.FormFile("myFile")
+	file, handler, err := r.FormFile("files")
 	if err != nil {
-		fmt.Println("Error Retrieving the File")
-		fmt.Println(err)
+		util.SendError(w, "Error: file was not present in the upload or could not be parsed.", 400)
 		return
 	}
 	defer file.Close()
