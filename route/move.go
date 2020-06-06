@@ -30,17 +30,17 @@ func MoveFile(w http.ResponseWriter, r *http.Request) {
 	url := r.FormValue("url")
 	urlIsAvailable, err := util.CheckIfURLIsAvailable(url)
 	if err != nil {
-		util.SendError(w, "Error checking requested url.", 500)
+		util.SendError(w, fmt.Sprintf("Error checking requested url: %v", url), 500)
 		fmt.Println(err)
 		return
 	}
 	if urlIsAvailable == false {
-		util.SendError(w, "Url is taken.", 400)
+		util.SendError(w, fmt.Sprintf("Url \"%v\" is taken.", url), 400)
 		return
 	}
 
 	// Check if the file we're moving exists
-	tempFile := r.FormValue("tempName")
+	tempFile := r.FormValue("tempUrl")
 	if _, err := os.Stat(fmt.Sprintf("files/images/%v.webp", tempFile)); os.IsNotExist(err) {
 		util.SendError(w, "No temp image exists with that name.", 400)
 		fmt.Println(err)
