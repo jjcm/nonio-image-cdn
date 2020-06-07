@@ -40,7 +40,8 @@ func MoveFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if the file we're moving exists
-	tempFile := r.FormValue("tempUrl")
+	tempFile := r.FormValue("oldUrl")
+  fmt.Printf("Old file name: %v", tempFile)
 	if _, err := os.Stat(fmt.Sprintf("files/images/%v.webp", tempFile)); os.IsNotExist(err) {
 		util.SendError(w, "No temp image exists with that name.", 400)
 		fmt.Println(err)
