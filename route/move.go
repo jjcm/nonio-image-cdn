@@ -41,9 +41,13 @@ func MoveFile(w http.ResponseWriter, r *http.Request) {
 
 	// Check if the file we're moving exists
 	tempFile := r.FormValue("oldUrl")
-  fmt.Printf("Old file name: %v", tempFile)
 	if _, err := os.Stat(fmt.Sprintf("files/images/%v.webp", tempFile)); os.IsNotExist(err) {
 		util.SendError(w, "No temp image exists with that name.", 400)
+		fmt.Println(err)
+		return
+	}
+	if _, err := os.Stat(fmt.Sprintf("files/thumbnails/%v.webp", tempFile)); os.IsNotExist(err) {
+		util.SendError(w, "No temp thumbnail exists with that name.", 400)
 		fmt.Println(err)
 		return
 	}
@@ -52,6 +56,11 @@ func MoveFile(w http.ResponseWriter, r *http.Request) {
 	err = os.Rename(fmt.Sprintf("files/images/%v.webp", tempFile), fmt.Sprintf("files/images/%v.webp", url))
 	if err != nil {
 		util.SendError(w, "Error renaming file.", 500)
+		return
+	}
+	err = os.Rename(fmt.Sprintf("files/thumbnails/%v.webp", tempFile), fmt.Sprintf("files/thumbnails/%v.webp", url))
+	if err != nil {
+		util.SendError(w, "Error renaming thumbnail.", 500)
 		return
 	}
 
