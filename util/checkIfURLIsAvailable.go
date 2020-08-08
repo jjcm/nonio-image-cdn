@@ -8,7 +8,7 @@ import (
 
 // CheckIfURLIsAvailable hits our api server and checks to see if the url is available to upload to
 func CheckIfURLIsAvailable(url string) (bool, error) {
-	urlCheckRes, err := http.Get(fmt.Sprintf("https://api.non.io/posts/url-is-available/%v", url))
+	urlCheckRes, err := http.Get(fmt.Sprintf("https://api.non.io/post/url-is-available/%v", url))
 	if err != nil {
 		fmt.Println("Error checking if url is available")
 		fmt.Println(err)
