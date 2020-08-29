@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"soci-cdn/util"
+	"soci-image-cdn/util"
 )
 
 // MoveFile takes the temp file and renames it to match the url

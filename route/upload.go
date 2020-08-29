@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"soci-cdn/encode"
-	"soci-cdn/util"
+	"soci-image-cdn/encode"
+	"soci-image-cdn/util"
 
 	"github.com/google/uuid"
 )
