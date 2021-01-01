@@ -8,6 +8,8 @@ import (
 )
 
 func setupRoutes() {
+	http.Handle("/", http.FileServer(http.Dir("./files/images")))
+	http.Handle("/thumbnail/", http.StripPrefix("/thumbnail/", http.FileServer(http.Dir("./files/thumbnails"))))
 	http.HandleFunc("/upload", route.UploadFile)
 	http.HandleFunc("/move", route.MoveFile)
 
