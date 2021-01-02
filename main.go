@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"soci-image-cdn/config"
 	"soci-image-cdn/route"
 )
 
-func setupRoutes() {
+func setupRoutes(settings *config.Config) {
 	http.Handle("/", http.FileServer(http.Dir("./files/images")))
 	http.Handle("/thumbnail/", http.StripPrefix("/thumbnail/", http.FileServer(http.Dir("./files/thumbnails"))))
 	http.HandleFunc("/upload", route.UploadFile)
@@ -15,7 +16,10 @@ func setupRoutes() {
 
 	port := os.Getenv("APP_PORT")
 	if port == "" {
-		port = "4203"
+		port = settings.Port
+		if port == "" {
+			port = "4203"
+		}
 	}
 
 	fmt.Printf("Listening on %v\n", port)
@@ -23,6 +27,16 @@ func setupRoutes() {
 }
 
 func main() {
+	var settings config.Config
+	// parse the config file
+	if err := config.ParseJSONFile("./config.json", &settings); err != nil {
+		panic(err)
+	}
+	// validate the config file
+	if err := settings.Validate(); err != nil {
+		panic(err)
+	}
+
 	fmt.Println("Starting image encoding server...")
-	setupRoutes()
+	setupRoutes(&settings)
 }
