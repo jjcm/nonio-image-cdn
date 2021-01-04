@@ -9,3 +9,4 @@ files/temp-videos/*
 !files/temp-videos/readme.md
 files/thumbnails/*.webp
 files/thumbnails/*.heic
+config.json
