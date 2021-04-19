@@ -7,6 +7,8 @@ import (
 	"mime/multipart"
 	"os"
 	"os/exec"
+
+	"github.com/h2non/filetype"
 )
 
 // Image encodes the image into a webp and returns the path to it
@@ -27,17 +29,55 @@ func Image(file multipart.File, url string) error {
 	}
 	tempFile.Write(fileBytes)
 
-	// since this is an image we'll use magick to encode it
-	cmd := exec.Command("convert", tempFile.Name(), "(", "+clone", "-resize", "192x144^", "-write", fmt.Sprintf("files/thumbnails/%v.webp", url), "+delete", ")", fmt.Sprintf("files/images/%v.webp", url))
-	workingDir, err := os.Getwd()
+	// read the file header and check
+	kind, err := filetype.Match(fileBytes)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	cmd.Dir = workingDir
-	var output bytes.Buffer
-	cmd.Stderr = &output
-	err = cmd.Run()
+	if kind.MIME.Value == "image/gif" {
+		// It's a gif, so we gotta create a static thumbnail first, then use ffmpeg to create an animated webp
+		cmd := exec.Command("convert", tempFile.Name(), "-resize", "192x144^", fmt.Sprintf("files/thumbnails/%v.webp", url))
+		workingDir, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		cmd.Dir = workingDir
+		var output bytes.Buffer
+		cmd.Stderr = &output
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+		cmd = exec.Command("gif2webp", tempFile.Name(), "-o", fmt.Sprintf("files/images/%v.webp", url))
+		cmd.Dir = workingDir
+		cmd.Stderr = &output
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
+	} else {
+		// It's a normal image, just use imagemagick to convert it
+		cmd := exec.Command("convert", tempFile.Name(), "(", "+clone", "-resize", "192x144^", "-write", fmt.Sprintf("files/thumbnails/%v.webp", url), "+delete", ")", fmt.Sprintf("files/images/%v.webp", url))
+		workingDir, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		cmd.Dir = workingDir
+		var output bytes.Buffer
+		cmd.Stderr = &output
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+	}
 
 	return err
 }

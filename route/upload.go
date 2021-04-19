@@ -57,7 +57,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	var mimeType = handler.Header["Content-Type"][0]
 
 	// If all is good, let's log what the hell is going on
-	fmt.Printf("%v is uploading a %v of size %v to %v", user, re.FindStringSubmatch(mimeType)[1], handler.Size, url)
+	fmt.Printf("%v is uploading a %v of size %v to %v\n", user, re.FindStringSubmatch(mimeType)[1], handler.Size, url)
 
 	switch re.FindStringSubmatch(mimeType)[1] {
 	case "image":
