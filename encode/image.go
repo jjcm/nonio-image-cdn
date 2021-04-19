@@ -37,7 +37,7 @@ func Image(file multipart.File, url string) error {
 	}
 	if kind.MIME.Value == "image/gif" {
 		// It's a gif, so we gotta create a static thumbnail first, then use ffmpeg to create an animated webp
-		cmd := exec.Command("convert", tempFile.Name(), "-resize", "192x144^", fmt.Sprintf("files/thumbnails/%v.webp", url))
+		cmd := exec.Command("convert", fmt.Sprintf("%v[0]", tempFile.Name()), "-resize", "192x144^", fmt.Sprintf("files/thumbnails/%v.webp", url))
 		workingDir, err := os.Getwd()
 		if err != nil {
 			fmt.Println(err)
