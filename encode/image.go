@@ -2,6 +2,7 @@ package encode
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"mime/multipart"
@@ -28,6 +29,11 @@ func Image(file multipart.File, url string) error {
 		return err
 	}
 	tempFile.Write(fileBytes)
+
+	if !filetype.IsImage(fileBytes) {
+		err = errors.New("file type not supported")
+		return err
+	}
 
 	// read the file header and check
 	kind, err := filetype.Match(fileBytes)

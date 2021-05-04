@@ -66,7 +66,8 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 		err = encode.Video(file, url)
 	}
 	if err != nil {
-		util.SendError(w, "Error encoding the file.", 500)
+		util.SendError(w, fmt.Sprintf("Error encoding the file: %v", err), 500)
+		return
 	}
 
 	util.SendResponse(w, url, 200)
