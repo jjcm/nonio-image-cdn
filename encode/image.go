@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
-	"mime/multipart"
 	"os"
 	"os/exec"
 
@@ -13,7 +13,7 @@ import (
 )
 
 // Image encodes the image into a webp and returns the path to it
-func Image(file multipart.File, url string) error {
+func Image(file io.Reader, url string) error {
 	// Create a temp file
 	tempFile, err := ioutil.TempFile("files/temp-images", "image-*")
 	if err != nil {
