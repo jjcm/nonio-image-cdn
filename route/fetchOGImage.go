@@ -12,7 +12,7 @@ import (
 )
 
 // UploadFile takes the form upload and delegates to the encoders
-func FetchOGThumbnail(w http.ResponseWriter, r *http.Request) {
+func FetchOGImage(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "OPTIONS" {
 		util.SendResponse(w, "", 200)
 		return

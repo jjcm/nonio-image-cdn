@@ -12,7 +12,7 @@ func setupRoutes(settings *config.Config) {
 	http.Handle("/", http.FileServer(http.Dir("./files/images")))
 	http.Handle("/thumbnail/", http.StripPrefix("/thumbnail/", http.FileServer(http.Dir("./files/thumbnails"))))
 	http.HandleFunc("/upload", route.UploadFile)
-	http.HandleFunc("/fetch-og-thumbnail", route.FetchOGThumbnail)
+	http.HandleFunc("/fetch-og-image", route.FetchOGImage)
 	http.HandleFunc("/move", route.MoveFile)
 
 	port := os.Getenv("APP_PORT")
