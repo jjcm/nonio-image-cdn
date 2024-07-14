@@ -67,6 +67,23 @@ func Image(file io.Reader, url string) error {
 			return err
 		}
 
+	} else if kind.MIME.Value == "image/png" {
+		// It's a png image, so set the flags to be lossless
+		cmd := exec.Command("convert", tempFile.Name(), "(", "+clone", "-resize", "192x144^", "-write", fmt.Sprintf("files/thumbnails/%v.webp", url), "+delete", ")", "-define", "webp:lossless=true", fmt.Sprintf("files/images/%v.webp", url))
+		workingDir, err := os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		cmd.Dir = workingDir
+		var output bytes.Buffer
+		cmd.Stderr = &output
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+
 	} else {
 		// It's a normal image, just use imagemagick to convert it
 		cmd := exec.Command("convert", tempFile.Name(), "(", "+clone", "-resize", "192x144^", "-write", fmt.Sprintf("files/thumbnails/%v.webp", url), "+delete", ")", fmt.Sprintf("files/images/%v.webp", url))
